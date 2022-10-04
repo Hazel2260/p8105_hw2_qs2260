@@ -1,0 +1,17 @@
+---
+title: "P8105 HW2"
+output: github_document
+date: "2022-10-04"
+---
+
+```{r}
+library(tidyverse)
+
+```
+
+
+# problem 2
+```{r}
+library(readxl)
+wheel_data = read_excel("data/Trash Wheel Collection Data.xlsx")
+```
