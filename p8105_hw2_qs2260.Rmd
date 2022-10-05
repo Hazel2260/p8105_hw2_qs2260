@@ -5,13 +5,104 @@ date: "2022-10-04"
 ---
 
 ```{r}
-library(tidyverse)
-
-```
-
-
-# problem 2
-```{r}
 library(readxl)
-wheel_data = read_excel("data/Trash Wheel Collection Data.xlsx")
+library(tidyverse)
+library(dplyr)
+library(tidyr)
+
 ```
+
+
+# Problem 2
+
+#cleaning Mr. Trash Wheel sheet
+```{r}
+
+wheel_data = read_excel("data/Trash Wheel Collection Data.xlsx",
+                        range = "A2:N550",
+                        sheet = "Mr. Trash Wheel") %>% janitor::clean_names()
+
+wheel_data = wheel_data %>% mutate(sports_balls = as.integer(sports_balls))%>%drop_na(dumpster)%>% mutate(vessel_type="Mr. Trash Wheel")%>%mutate(year=as.double(year))
+
+wheel_data
+```
+#cleaning Prof Trash Wheel sheet
+```{r}
+prof_data = read_excel("data/Trash Wheel Collection Data.xlsx",
+                        na = "",
+                        sheet = "Professor Trash Wheel") %>% janitor::clean_names()%>% drop_na(dumpster)%>%mutate(vessel_type = "Professor Trash Wheel")
+
+prof_data
+```
+#combine two data set
+```{r}
+tidy_data = bind_rows(wheel_data, prof_data)
+tidy_data%>% 
+  filter(vessel_type == "Professor Trash Wheel")%>%
+  select(weight_tons)%>%
+  sum()
+tidy_data%>%
+  filter(year==2020,vessel_type == "Mr. Trash Wheel")%>%
+  select(sports_balls)%>%
+  sum()
+```
+
+
+
+# Problem 3
+
+#cleaning data in plos-month
+```{r}
+pols_month = read_csv(file = "data/fivethirtyeight_datasets/pols-month.csv")%>% janitor::clean_names()
+tidy_pols = pols_month%>%
+  separate(mon,into = c("year", "month", "day"))%>%
+  mutate(month = month.name[as.numeric(month)], year = as.integer(year))%>%
+  mutate(president = ifelse(prez_dem==0, "Republican", "Democrat"))%>%
+  select(-prez_dem, -prez_gop, -day)
+  
+tidy_pols
+  
+```
+
+#cleaning data in snp.csv
+```{r}
+snp = read_csv(file = "data/fivethirtyeight_datasets/snp.csv")%>% janitor::clean_names()
+tidy_snp = snp%>%
+  separate(date,into = c("year", "month", "day"))%>%
+  mutate(month = as.integer(month), year = as.integer(year), day = as.integer(day))%>%
+  mutate(month = month.name[as.numeric(month)])%>%
+  mutate(year = as.integer(ifelse(year>15, year+1990, year+2000)))%>%
+  arrange(year, month, close)
+
+tidy_snp
+```
+#cleaning the unemployment data
+```{r}
+emp = read_csv(file = "data/fivethirtyeight_datasets/unemployment.csv")%>% janitor::clean_names()
+tidy_emp = emp%>%
+  pivot_longer(2:13, names_to = "month", values_to = "unemploy_perc")%>%
+  mutate(month = recode(month, 
+                        'jan'='January',
+                        'feb'='Febrary',
+                        'mar'='March',
+                        'apr'='April',
+                        'may'='May',
+                        'jun'='June',
+                        'jul'='July',
+                        'aug'='Augest',
+                        'sep'='September',
+                        'oct'='October',
+                        'nov'='November',
+                        'dec'='December'), year = as.integer(year))
+
+tidy_emp
+```
+
+#combine the three datasets
+```{r}
+tidy_combine = merge(tidy_pols,tidy_snp)%>% merge(tidy_emp)
+```
+
+
+
+
