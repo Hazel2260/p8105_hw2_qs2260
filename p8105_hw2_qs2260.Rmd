@@ -59,12 +59,9 @@ After combining these two datasets, the new dataset contains 641 rows and 15 col
 pols_month = read_csv(file = "data/fivethirtyeight_datasets/pols-month.csv")%>% janitor::clean_names()
 tidy_pols = pols_month%>%
   separate(mon,into = c("year", "month", "day"), sep = "-")%>%
+  mutate(president = ifelse(prez_dem==0, "gop", "dem"))%>%
   mutate(month = month.name[as.numeric(month)], year = as.integer(year))%>%
-  mutate(president = ifelse(prez_dem==0, "Republican", "Democrat"))%>%
-  select(-prez_dem, -prez_gop, -day)%>%
-  mutate(month = factor(month, levels = c('January', 'February', 'March', 'April', 'May', 'June', 'July', 'Augest', 'September', 'October', 'November', 'December')))%>%
-  arrange(year, month)
-
+  select(-prez_dem, -prez_gop, -day)
   
 tidy_pols
   
@@ -74,21 +71,21 @@ tidy_pols
 ```{r}
 snp = read_csv(file = "data/fivethirtyeight_datasets/snp.csv")%>% janitor::clean_names()
 tidy_snp = snp%>%
-  separate(date,into = c("year", "month", "day"), sep = "/")%>%
-  mutate(month = as.integer(month), year = as.integer(year), day = as.integer(day))%>%
-  mutate(month = month.name[as.numeric(month)])%>%
-  mutate(year = as.integer(ifelse(year>15, year+1990, year+2000)))%>%
-  select(year, month, close)%>%
-  mutate(month = factor(month, levels = c('January', 'February', 'March', 'April', 'May', 'June', 'July', 'Augest', 'September', 'October', 'November', 'December')))%>%
-  arrange(year, month)
+  separate(date,into = c("month", "day","year"), sep = "/")%>%
+  mutate(month = month.name[as.integer(month)], year = as.integer(year), day = as.integer(day))%>%
+  mutate(year = as.integer(ifelse(year>=15, year+1900, year+2000)))%>%
+  select(year, month, close)%>%arrange(year, month)
 
 tidy_snp
 ```
+
+
+
 #cleaning the unemployment data
 ```{r}
 emp = read_csv(file = "data/fivethirtyeight_datasets/unemployment.csv")%>% janitor::clean_names()
 tidy_emp = emp%>%
-  pivot_longer(2:13, names_to = "month", values_to = "unemploy_perc")%>%
+  pivot_longer(2:13, names_to = "month", values_to = "unemploy")%>%
   mutate(month = recode(month, 
                         'jan'='January',
                         'feb'='February',
@@ -97,13 +94,11 @@ tidy_emp = emp%>%
                         'may'='May',
                         'jun'='June',
                         'jul'='July',
-                        'aug'='Augest',
+                        'aug'='August',
                         'sep'='September',
                         'oct'='October',
                         'nov'='November',
-                        'dec'='December'), year = as.integer(year))%>%
-  mutate(month = factor(month, levels = c('January', 'February', 'March', 'April', 'May', 'June', 'July', 'Augest', 'September', 'October', 'November', 'December')))%>%
-  arrange(year, month)
+                        'dec'='December'), year = as.integer(year))
 
 tidy_emp
 ```
@@ -114,18 +109,18 @@ tidy_combine = full_join(tidy_pols, tidy_snp)%>% full_join(tidy_emp)
 
 tidy_combine
 ```
-After combing the three data sets, the new dataset obtained contains 645 rows and 12 columns, which gives the dimension of 1779 x 11, and the range of years is 68, the key variables are listed as follow:
+After combing the three data sets, the new dataset obtained contains 645 rows and 12 columns, which gives the dimension of 828 x 11, and the range of years is 68, the key variables are listed as follow:
 year
 month
-gov_gop
-sen_gop
-rep_gop
-gov_dem
-sen_dem
-rep_dem
-president
-close
-unemploy_perc
+gov_gop: # of republican governors with associated time.
+sen_gop: # of republican senators with associated time.
+rep_gop: # of republican representatives with associated time.
+gov_dem: # of democratic governors with associated time.
+sen_dem: # of democratic senators with associated time.
+rep_dem: # of democratic representatives with associated time.
+president: indicate the party of president with associated time.
+close: the closing value of stock index.
+unemploy_perc: the unemployment percentage with associated time.
 
 
 
