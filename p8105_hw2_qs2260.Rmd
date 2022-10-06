@@ -35,6 +35,7 @@ prof_data = read_excel("data/Trash Wheel Collection Data.xlsx",
 prof_data
 ```
 #combine two data set
+
 ```{r}
 tidy_data = bind_rows(wheel_data, prof_data)
 tidy_data%>% 
@@ -45,7 +46,9 @@ tidy_data%>%
   filter(year==2020,vessel_type == "Mr. Trash Wheel")%>%
   select(sports_balls)%>%
   sum()
+
 ```
+After combining these two datasets, the new dataset contains 641 rows and 15 columns, key variables including: dumpster, month, year, date, weight_tons, volume_cubic_yards, plastic_bottles, polystyrene, cigarette_butts, glass_bottles, grocery_bags, chip_bags, sports_balls, homes_powered and the new adding variable vessel_type which helps indicate the data source. For the data we got, we can obtained that the total weight of trash collected by Professor Trash Wheel is 190.12 tons, and the total number of sports balls collected by Mr. Trash Wheel in 2020 is 856.
 
 
 
@@ -55,10 +58,13 @@ tidy_data%>%
 ```{r}
 pols_month = read_csv(file = "data/fivethirtyeight_datasets/pols-month.csv")%>% janitor::clean_names()
 tidy_pols = pols_month%>%
-  separate(mon,into = c("year", "month", "day"))%>%
+  separate(mon,into = c("year", "month", "day"), sep = "-")%>%
   mutate(month = month.name[as.numeric(month)], year = as.integer(year))%>%
   mutate(president = ifelse(prez_dem==0, "Republican", "Democrat"))%>%
-  select(-prez_dem, -prez_gop, -day)
+  select(-prez_dem, -prez_gop, -day)%>%
+  mutate(month = factor(month, levels = c('January', 'February', 'March', 'April', 'May', 'June', 'July', 'Augest', 'September', 'October', 'November', 'December')))%>%
+  arrange(year, month)
+
   
 tidy_pols
   
@@ -68,11 +74,13 @@ tidy_pols
 ```{r}
 snp = read_csv(file = "data/fivethirtyeight_datasets/snp.csv")%>% janitor::clean_names()
 tidy_snp = snp%>%
-  separate(date,into = c("year", "month", "day"))%>%
+  separate(date,into = c("year", "month", "day"), sep = "/")%>%
   mutate(month = as.integer(month), year = as.integer(year), day = as.integer(day))%>%
   mutate(month = month.name[as.numeric(month)])%>%
   mutate(year = as.integer(ifelse(year>15, year+1990, year+2000)))%>%
-  arrange(year, month, close)
+  select(year, month, close)%>%
+  mutate(month = factor(month, levels = c('January', 'February', 'March', 'April', 'May', 'June', 'July', 'Augest', 'September', 'October', 'November', 'December')))%>%
+  arrange(year, month)
 
 tidy_snp
 ```
@@ -83,7 +91,7 @@ tidy_emp = emp%>%
   pivot_longer(2:13, names_to = "month", values_to = "unemploy_perc")%>%
   mutate(month = recode(month, 
                         'jan'='January',
-                        'feb'='Febrary',
+                        'feb'='February',
                         'mar'='March',
                         'apr'='April',
                         'may'='May',
@@ -93,15 +101,34 @@ tidy_emp = emp%>%
                         'sep'='September',
                         'oct'='October',
                         'nov'='November',
-                        'dec'='December'), year = as.integer(year))
+                        'dec'='December'), year = as.integer(year))%>%
+  mutate(month = factor(month, levels = c('January', 'February', 'March', 'April', 'May', 'June', 'July', 'Augest', 'September', 'October', 'November', 'December')))%>%
+  arrange(year, month)
 
 tidy_emp
 ```
 
 #combine the three datasets
 ```{r}
-tidy_combine = merge(tidy_pols,tidy_snp)%>% merge(tidy_emp)
+tidy_combine = full_join(tidy_pols, tidy_snp)%>% full_join(tidy_emp)
+
+tidy_combine
 ```
+After combing the three data sets, the new dataset obtained contains 645 rows and 12 columns, which gives the dimension of 1779 x 11, and the range of years is 68, the key variables are listed as follow:
+year
+month
+gov_gop
+sen_gop
+rep_gop
+gov_dem
+sen_dem
+rep_dem
+president
+close
+unemploy_perc
+
+
+
 
 
 
