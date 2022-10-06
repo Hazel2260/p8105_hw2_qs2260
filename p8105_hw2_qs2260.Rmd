@@ -24,7 +24,6 @@ wheel_data = read_excel("data/Trash Wheel Collection Data.xlsx",
 
 wheel_data = wheel_data %>% mutate(sports_balls = as.integer(sports_balls))%>%drop_na(dumpster)%>% mutate(vessel_type="Mr. Trash Wheel")%>%mutate(year=as.double(year))
 
-wheel_data
 ```
 #cleaning Prof Trash Wheel sheet
 ```{r}
@@ -32,7 +31,6 @@ prof_data = read_excel("data/Trash Wheel Collection Data.xlsx",
                         na = "",
                         sheet = "Professor Trash Wheel") %>% janitor::clean_names()%>% drop_na(dumpster)%>%mutate(vessel_type = "Professor Trash Wheel")
 
-prof_data
 ```
 #combine two data set
 
@@ -78,7 +76,6 @@ tidy_snp = snp%>%
 
 tidy_snp
 ```
-
 
 
 #cleaning the unemployment data
